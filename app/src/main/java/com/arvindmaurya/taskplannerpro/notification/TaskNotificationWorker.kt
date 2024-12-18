@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
@@ -23,6 +24,7 @@ import com.arvindmaurya.taskplannerpro.data.TaskRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 @HiltWorker
@@ -40,6 +42,21 @@ class TaskNotificationWorker @AssistedInject constructor(
 
             val task = taskRepository.getTaskById(taskId) ?: return@withContext Result.failure()
             
+            // Calculate exact delay
+            val currentTime = System.currentTimeMillis()
+            val targetTime = when {
+                isAlarm -> task.alarmTime
+                inputData.getBoolean("isEndNotification", false) -> task.endDate
+                else -> task.startDate
+            }
+
+            if (targetTime > currentTime) {
+                val delay = targetTime - currentTime
+                if (delay > 0) {
+                    delay(delay)
+                }
+            }
+
             val notificationManager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             
             // Create notification channel
@@ -83,6 +100,22 @@ class TaskNotificationWorker @AssistedInject constructor(
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
+            val fullScreenIntent = Intent(appContext, AlarmActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+                putExtra("taskId", taskId)
+                putExtra("taskTitle", task.title)
+                putExtra("alarmTone", task.alarmTone)
+            }
+
+            val fullScreenPendingIntent = PendingIntent.getActivity(
+                appContext,
+                taskId.toInt(),
+                fullScreenIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
             // Build notification
             val notification = NotificationCompat.Builder(
                 appContext, 
@@ -100,6 +133,7 @@ class TaskNotificationWorker @AssistedInject constructor(
                 .setPriority(if (isAlarm) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_HIGH)
                 .setCategory(if (isAlarm) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_EVENT)
                 .setAutoCancel(true)
+                .setFullScreenIntent(if (isAlarm) fullScreenPendingIntent else null, true)
                 .setContentIntent(pendingIntent)
                 .apply {
                     if (isAlarm) {
@@ -107,7 +141,7 @@ class TaskNotificationWorker @AssistedInject constructor(
                             Uri.parse(task.alarmTone.ifEmpty { 
                                 RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString() 
                             }),
-                            AudioAttributes.USAGE_ALARM
+                            AudioManager.STREAM_ALARM
                         )
                         setVibrate(longArrayOf(0, 1000, 500, 1000))
                     }
