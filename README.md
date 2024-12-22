@@ -113,7 +113,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Open-source community
 
 ## Contact
-Your Name - Arvind Maurya
+Name - Arvind Maurya
 Project Link: [https://github.com/arvind-git-code/TaskPlannerPro.git](https://github.com/arvind-git-code/TaskPlannerPro.git)
 
 ## Future Enhancements
