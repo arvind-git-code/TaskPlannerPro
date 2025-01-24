@@ -110,8 +110,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Android Jetpack libraries
 - Open-source community
 
-## Contact
-Name - Arvind Maurya
+## Connect with me
+
+- **Name:** Arvind Kumar
+- **LinkedIn:** [LinkedIn Profile URL](https://www.linkedin.com/in/arvind-kumar-a8b591221/)
+- **Email:** [Email](mailto:arvindkumarlbsmca@gmail.com)
+
 Project Link: [https://github.com/arvind-git-code/TaskPlannerPro.git](https://github.com/arvind-git-code/TaskPlannerPro.git)
 
 ## Future Enhancements
